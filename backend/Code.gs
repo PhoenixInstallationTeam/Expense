@@ -31,7 +31,7 @@ const HEADERS = {
 };
 
 const SEED_USERS = [
-  ["gobinath","Gobinath","Gobinath","Ins@12345","admin","TRUE"],
+  ["gobinath","Gobinath","Gobinath","gobi6462","admin","TRUE"],
   ["prashandh","Prashandh","Prashandh","Ins@12345","user","TRUE"],
   ["sundarram","Sundarram","Sundarram","Ins@12345","user","TRUE"],
   ["karthikeyan","Karthikeyan","Karthikeyan","Ins@12345","user","TRUE"],
