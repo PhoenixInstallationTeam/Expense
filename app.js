@@ -263,8 +263,8 @@ function openGroupModal(){
 function openExpenseModal(){
  const g=activeGroup(); if(!g) return toast("Create a group first.","error");
  overlay(`<div class="modal wide"><div class="modal-title"><div><small>NEW TRANSACTION · ${esc(g.name)}</small><h3>Add expense</h3></div><button onclick="document.getElementById('modalBackdrop').remove()">×</button></div>
- <div class="formgrid"><label>Description<input id="mDesc" placeholder="Dinner, hotel, fuel…"></label><label>Amount (₹)<input id="mAmount" type="number" min="0" step="0.01" placeholder="0.00"></label>
- <label>Category<select id="mCat"><option>Food</option><option>Travel</option><option>Accommodation</option><option>Shopping</option><option>Bills</option><option>Other</option></select></label>
+ <div class="formgrid"><label>Description<input id="mDesc" placeholder="Dinner, Theatre, hotel, fuel…"></label><label>Amount (₹)<input id="mAmount" type="number" min="0" step="0.01" placeholder="0.00"></label>
+ <label>Category<select id="mCat"><option>Food</option><option>Travel</option><option>Accommodation</option><option>Theatre</option><option>Shopping</option><option>Bills</option><option>Other</option></select></label>
  <label>Date<input id="mDate" type="date" value="${today()}"></label></div>
  <label>Paid by — select one or more people</label><div class="checks">${g.memberIds.map(id=>`<label><input type="checkbox" name="payer" value="${id}" ${id===state.user.id?"checked":""}>${esc(userName(id))}</label>`).join("")}</div>
  <label>Split between</label><div class="checks">${g.memberIds.map(id=>`<label><input type="checkbox" name="split" value="${id}" checked>${esc(userName(id))}</label>`).join("")}</div>
