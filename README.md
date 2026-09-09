@@ -1,128 +1,191 @@
-# Settled — Shared Expense Manager (GitHub Pages + Google Sheet)
+# Quntet Friends Expense Manager — Enterprise-style v5
 
-This version intentionally removes the React/Vite build step. It is plain HTML/CSS/JavaScript, so GitHub Pages can serve it directly from the `main` branch without GitHub Actions. This avoids the blank-screen/build failure that can happen when the source files are uploaded but the Vite build is not deployed.
+This package keeps the existing infrastructure but replaces the frontend and backend logic with a more complete shared-ledger workflow.
 
 ## Architecture
 
 ```text
 GitHub Pages
-    │
-    │ static website
-    ▼
-Settled frontend
-    │
-    ├── JSONP reads
-    └── POST writes
-    ▼
+    |
+    v
+Quntet static website
+    |
+    | JSONP reads + POST writes
+    v
 Google Apps Script Web App
-    │
-    ▼
-Google Sheet (shared master ledger)
-    ├── Users
-    ├── Groups
-    ├── Expenses
-    └── Splits
+    |
+    v
+Shared Google Sheet
+    ├─ Users
+    ├─ Groups
+    ├─ Expenses
+    ├─ Splits
+    └─ Settlements
 ```
 
-Every user reads/writes the same Google Sheet. The browser no longer uses localStorage as the source of truth.
+There is no Vite, React build or npm dependency. GitHub Pages can publish the repository root directly.
 
-## 1. Create the shared Google Sheet backend
+## New features
 
-1. Open Google Drive and create a Google Sheet, for example `Settled Shared Ledger`.
-2. Open **Extensions → Apps Script**.
-3. Open `backend/Code.gs` from this package.
-4. Paste the code into Apps Script.
-5. Change:
-   `appKey: "CHANGE_ME_SETTLED_KEY"`
-   to any random value.
-6. Save.
-7. Run the `setup` function once.
-8. Google will ask you to authorize the script. Allow it.
-9. Back in Apps Script: **Deploy → New deployment**.
-10. Select **Web app**.
-11. **Execute as:** Me.
-12. **Who has access:** Anyone.
-13. Deploy.
-14. Copy the URL ending in `/exec`.
+- Quntet branding
+- "Friends Group" default group
+- 5 preconfigured users
+- Fixed password `Ins@12345`
+- Admin: Gobinath
+- All members: Gobinath, Prashandh, Sundarram, Karthikeyan, Thanis
+- Shared Google Sheet as the source of truth
+- Multiple payers
+- Equal split
+- Custom split with validation
+- Created-by tracking
+- Date and notes
+- 30 expense categories
+- Admin edit/delete for every expense
+- Advanced settlement records
+- Pending / Paid / Received settlement status
+- Payer, recipient or admin can complete a settlement
+- Admin can reverse completed settlements
+- Completed settlements are applied to outstanding balances
+- Settlement plan recalculates after payments
+- Shared Sheet button
+- Excel-compatible `.xls` export
+- Expenses, Balances, Outstanding Settlements and Settlement History sheets in the export
+- LockService for concurrent backend writes
+- Passwords stored as SHA-256 hashes in the Users sheet
+- `setup()` is non-destructive: it only seeds missing sheets/users/default group
 
-Google Apps Script web-app deployments have configurable access and execution identity; the deployment URL is the API endpoint used by this frontend.
+## Fix for Sundarram login
 
-## 2. Connect GitHub Pages to the shared sheet
+The backend login was hardened:
+- username matching is case-insensitive and trimmed
+- accounts are seeded consistently
+- active users are checked
+- passwords are hashed in the sheet
+- all five users use the same required password
+- failed/invalid session users are rejected cleanly
 
-Open `app.js` and change:
+Do not manually edit the password hash unless you know the hashing format. Run `setup()` once.
 
-```js
+## First-time / backend setup
+
+1. Create or use the existing shared Google Sheet.
+2. **Extensions -> Apps Script**.
+3. Replace the old backend code with `backend/Code.gs`.
+4. Save.
+5. Run `setup()` once and authorize it.
+6. Deploy -> New deployment -> Web app.
+7. Execute as: **Me**.
+8. Who has access: **Anyone**.
+9. Copy the `/exec` URL.
+
+## Connect the website
+
+Open `app.js` and replace:
+
+```javascript
 apiUrl: "PASTE_GOOGLE_APPS_SCRIPT_EXEC_URL_HERE",
 ```
 
-to your Apps Script `/exec` URL.
+with your Apps Script `/exec` URL.
 
-No other URL is required.
+Do not change the rest of the API configuration.
 
-## 3. Upload directly to GitHub
+## GitHub Pages
 
-Repository:
+For:
 
 `https://github.com/phoenixinstallationteam/Expense`
 
-Upload these items to the **repository root**:
+Upload the following to the repository root:
 
 ```text
 index.html
 app.js
 styles.css
-backend/Code.gs
 README.md
+backend/
+    Code.gs
 ```
 
-There is deliberately no `package.json` and no `.github/workflows/deploy.yml` in this edition.
+Do not upload the older React/Vite files for this version.
 
-Commit directly to `main`.
-
-## 4. Change GitHub Pages source
-
-Repository → **Settings → Pages**
-
-Set:
+GitHub repository settings:
 
 ```text
-Source: Deploy from a branch
-Branch: main
-Folder: / (root)
+Settings
+  -> Pages
+  -> Build and deployment
+  -> Source: Deploy from a branch
+  -> Branch: main
+  -> Folder: / (root)
 ```
 
-Save.
-
-After GitHub Pages publishes, open:
+Website:
 
 `https://phoenixinstallationteam.github.io/Expense/`
 
-## 5. Login
+## Existing Google Sheet data
 
-All five accounts are created by `setup()`:
+This version uses the same sheet-based architecture but creates a revised schema. Because old v3/v4 sheets may have incompatible column layouts, take a backup of the existing spreadsheet before running the new `setup()`.
 
-- Gobinath / `Ins@12345`
-- Prashandh / `Ins@12345`
-- Sundarram / `Ins@12345`
-- Karthikeyan / `Ins@12345`
-- Thanis / `Ins@12345`
+The new backend uses:
 
-## 6. What is now shared
+- `Users`
+- `Groups`
+- `Expenses`
+- `Splits`
+- `Settlements`
 
-Gobinath enters an expense on one device → it is written into the Google Sheet → Prashandh, Sundarram, Karthikeyan and Thanis see the same expense after refreshing/loading the app.
+If this is a clean deployment, simply run `setup()`.
 
-The shared source of truth is the Google Sheet, not browser localStorage.
+## Settlement behavior
 
-## 7. Excel download
+Example:
 
-The app has a **Download Excel** button. It exports the active group's Expenses, Balances and Settlements into an Excel-compatible `.xls` file directly in the browser.
+```text
+Gobinath owes Sundarram ₹152.40
+Prashandh owes Sundarram ₹192.40
+Karthikeyan owes Sundarram ₹192.40
+Thanis owes Sundarram ₹72.40
+```
 
-The Google Sheet itself remains the live master ledger and can also be opened with **Shared Sheet**.
+Admin clicks **Create settlement records**.
 
-## Important security note
+Each payment becomes a tracked record.
 
-This is a practical small-group solution, not high-security enterprise authentication. The predefined credentials live in the Google Sheet and are validated by Apps Script. The Apps Script web app is public so the GitHub Pages frontend can reach it. For genuine confidential enterprise authentication and authorization, use a managed backend such as Supabase Auth/Postgres or another server-side identity/database platform.
+The payer can click **Mark Paid**.
 
-## Troubleshooting the previous blank page
+The recipient can click **Received**.
 
-The old version required a successful Vite build and Pages artifact deployment. This edition does not. If this page is blank after upload, open the repository root and verify that `index.html` is directly visible beside `app.js` and `styles.css`, not inside another folder.
+Once completed, that payment is applied back into the outstanding balance calculation. The settlement screen therefore shows what is still unpaid, not the original static plan.
+
+Admin can reverse a completed settlement if it was entered incorrectly.
+
+## Admin permissions
+
+Gobinath is the admin and can:
+
+- create groups
+- edit expenses
+- delete expenses
+- create settlement records
+- mark/reverse settlements
+- manage the ledger across all members
+
+Regular users can:
+
+- log in
+- view the shared ledger
+- add expenses
+- mark their own outgoing payment as paid
+- confirm incoming payment as received
+
+## Categories
+
+The app includes:
+
+Food, Dining, Party, Treat, Gift, Movie, Snacks, Travel, Transport, Fuel, Hotel, Tickets, Entertainment, Shopping, Groceries, Bills, Electricity, Internet, Rent, Parking, Recharge, Sports, Games, Birthday, Celebration, Medical, Education, Office, Utilities, Other.
+
+## Security note
+
+This remains a small-group Google Apps Script + Google Sheet solution, not a full enterprise identity platform. The web app endpoint is public so GitHub Pages can reach it. For stronger security, replace the login layer with a managed authentication service and server-side authorization.
