@@ -284,7 +284,7 @@ function openExpenseModal(){
 
 function renderLogin(){
  document.getElementById("app").innerHTML=`<div class="login"><div class="login-card">
-   <div class="login-brand"><div class="brand-mark">S</div><div><strong>Settled</strong><small>Shared Expense Manager</small></div></div>
+   <div class="login-brand"><div class="brand-mark">S</div><div><strong>Quintet</strong><small>Shared Expense Manager</small></div></div>
    <h1>Split expenses.<br><span>Settle simply.</span></h1>
    <p>One shared ledger for your group. Add an expense from any device and everyone sees the same data.</p>
    <form id="loginForm"><label>Username<input id="loginUser" autocomplete="username" placeholder="Gobinath"></label><label>Password<input id="loginPass" type="password" autocomplete="current-password" placeholder="Password"></label>
@@ -299,7 +299,7 @@ function exportExcel(g){
  const rows=es.map(e=>`<tr><td>${esc(e.date)}</td><td>${esc(e.description)}</td><td>${esc(e.category||"Other")}</td><td>${Number(e.amount).toFixed(2)}</td><td>${(e.paidBy||[]).map(userName).map(esc).join(", ")}</td><td>${(e.splits||[]).map(s=>`${esc(userName(s.userId))}: ${Number(s.amount).toFixed(2)}`).join(" | ")}</td><td>${esc(e.notes||"")}</td></tr>`).join("");
  const bal=g.memberIds.map(id=>{const paid=es.reduce((a,e)=>a+(e.paidBy||[]).includes(id)?Number(e.amount)/(e.paidBy?.length||1):0,0);const share=es.reduce((a,e)=>a+(e.splits||[]).find(s=>s.userId===id)?.amount||0,0);return `<tr><td>${esc(userName(id))}</td><td>${paid.toFixed(2)}</td><td>${share.toFixed(2)}</td><td>${Number(net[id]).toFixed(2)}</td></tr>`}).join("");
  const sett=plan.map(s=>`<tr><td>${esc(userName(s.from))}</td><td>${esc(userName(s.to))}</td><td>${s.amount.toFixed(2)}</td></tr>`).join("");
- const html=`<!doctype html><html><head><meta charset="utf-8"><style>table{border-collapse:collapse}td,th{border:1px solid #999;padding:6px}h2{margin-top:24px}</style></head><body><h1>Settled — ${esc(g.name)}</h1><h2>Expenses</h2><table><tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th><th>Paid By</th><th>Split</th><th>Notes</th></tr>${rows||"<tr><td colspan='7'>No expenses</td></tr>"}</table><h2>Balances</h2><table><tr><th>Member</th><th>Paid</th><th>Share</th><th>Net</th></tr>${bal}</table><h2>Settlements</h2><table><tr><th>From</th><th>To</th><th>Amount</th></tr>${sett||"<tr><td colspan='3'>Everything is settled</td></tr>"}</table></body></html>`;
+ const html=`<!doctype html><html><head><meta charset="utf-8"><style>table{border-collapse:collapse}td,th{border:1px solid #999;padding:6px}h2{margin-top:24px}</style></head><body><h1>Quintet — ${esc(g.name)}</h1><h2>Expenses</h2><table><tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th><th>Paid By</th><th>Split</th><th>Notes</th></tr>${rows||"<tr><td colspan='7'>No expenses</td></tr>"}</table><h2>Balances</h2><table><tr><th>Member</th><th>Paid</th><th>Share</th><th>Net</th></tr>${bal}</table><h2>Settlements</h2><table><tr><th>From</th><th>To</th><th>Amount</th></tr>${sett||"<tr><td colspan='3'>Everything is settled</td></tr>"}</table></body></html>`;
  const blob=new Blob([html],{type:"application/vnd.ms-excel"});
  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`${g.name.replace(/[^a-z0-9]+/gi,"-").toLowerCase()}-settlement.xls`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
  toast("Excel report downloaded.");
